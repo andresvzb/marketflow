@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mart_stocks__daily_returns
+    description: "Gold-layer mart computing per-symbol daily returns from cleaned OHLCV data. Calculates absolute price change, simple daily return percentage, and log return using the prior trading day's close (via LAG window function partitioned by symbol)."
+    columns:
+      - name: symbol
+        description: "Ticker symbol."
+      - name: trade_date
+        description: "Trading date for the observation."
+      - name: close
+        description: "Closing price for the trade date."
+      - name: prev_close
+        description: "Closing price of the prior trading day for this symbol (NULL for the first row)."
+      - name: price_change
+        description: "Absolute change in close price vs. the prior trading day (close - prev_close)."
+      - name: daily_return_pct
+        description: "Simple daily return: (close - prev_close) / prev_close. NULL when prev_close is missing or zero."
+      - name: daily_log_return
+        description: "Natural-log daily return: ln(close / prev_close)."

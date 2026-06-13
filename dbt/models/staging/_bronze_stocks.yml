@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: bronze_stocks
+    schema: bronze
+    tables:
+      - name: raw_ohlcv
+        columns:
+        - name: ticker
+        - name: date
+        - name: open
+        - name: high
+        - name: low
+        - name: close
+        - name: volume
+        - name: adjusted_close

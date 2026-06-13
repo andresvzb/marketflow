@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: stg_stocks__ohlcv
+    description: "Cleaned and typed daily stock OHLCV data from the bronze raw_ohlcv source. Standardizes the ticker symbol, casts the trading date and numeric price/volume fields to their proper types, and serves as the silver-layer foundation for downstream gold marts."
+    columns:
+      - name: ticker
+        description: "Stock ticker symbol, upper-cased and trimmed."
+      - name: trading_date
+        description: "Trading session date (cast to DATE)."
+      - name: open_price
+        description: "Opening price for the session, decimal(18,4)."
+      - name: high_price
+        description: "Highest price during the session, decimal(18,4)."
+      - name: low_price
+        description: "Lowest price during the session, decimal(18,4)."
+      - name: close_price
+        description: "Closing price for the session, decimal(18,4)."
+      - name: adjusted_close_price
+        description: "Split/dividend-adjusted closing price, decimal(18,4)."
+      - name: volume
+        description: "Number of shares traded during the session, bigint."
