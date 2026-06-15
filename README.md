@@ -6,7 +6,7 @@
 ![CI](https://github.com/andresvzb/marketflow/actions/workflows/dbt_ci.yml/badge.svg)
 ![Claude](https://img.shields.io/badge/Claude-Opus%204.8-8A2BE2)
 
-A financial data pipeline built on the **medallion architecture** — raw stock prices flow from Yahoo Finance through a bronze → silver → gold transformation layer on AWS, with dbt handling all SQL transformations on Amazon Redshift Serverless.
+A financial data pipeline built on the **medallion architecture** — raw stock prices flow from Yahoo Finance through a bronze → silver → gold transformation layer on AWS, with dbt handling all SQL transformations on Amazon Redshift Serverless. Results are surfaced in a Streamlit dashboard.
 
 An AI agent (Claude Opus 4.8) provisions the infrastructure and scaffolds dbt artifacts from natural-language commands.
 
@@ -19,6 +19,7 @@ An AI agent (Claude Opus 4.8) provisions the infrastructure and scaffolds dbt ar
 3. **Transforms** it through two dbt layers — silver cleans and types the data, gold calculates financial metrics
 4. **Tests** data quality automatically on every dbt run (20 tests)
 5. **Validates** all SQL on every GitHub push via CI
+6. **Visualizes** results in a Streamlit dashboard — signals, cumulative returns, moving averages, volatility
 
 ---
 
@@ -45,6 +46,10 @@ flowchart LR
         G[mart_stocks__volatility\nincremental table]
     end
 
+    subgraph Dashboard["Dashboard"]
+        I[Streamlit\nlocalhost:8501]
+    end
+
     subgraph Agent["AI Agent"]
         H[Claude Opus 4.8\ntool-use loop]
     end
@@ -56,10 +61,29 @@ flowchart LR
     D --> F
     E --> G
     F --> G
+    G --> I
     H -.->|provisions S3, Glue| B
     H -.->|scaffolds models| D
     H -.->|generates DAGs| G
 ```
+
+---
+
+## Dashboard
+
+A Streamlit app reads directly from the Redshift gold tables and renders four views:
+
+- **Today's Signals** — close price, day return %, distance from 30d average, annualized volatility, and golden cross status for all 10 tickers
+- **Cumulative Returns** — interactive line chart comparing all stocks since the start of the dataset
+- **Price vs Moving Averages** — per-ticker view of close price against 7d and 30d SMA, with ticker selector
+- **Volatility Ranking** — horizontal bar chart of 30d annualized volatility across all tickers
+
+```bash
+uv run streamlit run dashboard/app.py
+# → http://localhost:8501
+```
+
+> **Screenshot:** *(add one after running locally)*
 
 ---
 
@@ -167,6 +191,7 @@ while True:
 | Transformation | dbt Core · dbt-redshift |
 | Data quality | dbt schema tests · singular SQL tests |
 | Orchestration | Apache Airflow (DAG definition) |
+| Dashboard | Streamlit · Plotly |
 | CI | GitHub Actions · SQLFluff · dbt parse |
 | AI agent | Claude Opus 4.8 · Anthropic Python SDK |
 | Runtime | Python 3.13 · uv |
@@ -194,7 +219,10 @@ uv run dbt deps --project-dir dbt
 uv run dbt run --project-dir dbt --profiles-dir ~/.dbt
 uv run dbt test --project-dir dbt --profiles-dir ~/.dbt
 
-# 5. (Optional) Run the AI agent
+# 5. Run the dashboard
+uv run streamlit run dashboard/app.py
+
+# 6. (Optional) Run the AI agent
 uv run python main.py "provision S3 buckets for dev"
 ```
 
