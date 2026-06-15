@@ -1,0 +1,13 @@
+[sqlfluff]
+templater = jinja
+dialect = redshift
+
+[sqlfluff:templater:jinja]
+# Stub out dbt macros so SQLFluff can lint without a live dbt connection
+apply_dbt_builtins = True
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+capitalisation_policy = lower
