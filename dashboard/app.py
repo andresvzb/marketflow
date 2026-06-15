@@ -33,38 +33,44 @@ def get_connection():
     )
 
 
+def _query(sql: str) -> pd.DataFrame:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(sql)
+    rows = cur.fetchall()
+    cols = [d[0] for d in cur.description]
+    return pd.DataFrame(rows, columns=cols)
+
+
 @st.cache_data(ttl=3600)
 def load_returns() -> pd.DataFrame:
-    conn = get_connection()
-    return pd.read_sql("""
+    return _query("""
         select ticker, trading_date, close_price,
                daily_return_pct, daily_log_return
         from bronze_gold.mart_stocks__daily_returns
         order by ticker, trading_date
-    """, conn)
+    """)
 
 
 @st.cache_data(ttl=3600)
 def load_moving_averages() -> pd.DataFrame:
-    conn = get_connection()
-    return pd.read_sql("""
+    return _query("""
         select ticker, trading_date, close_price, sma_7, sma_30, price_to_sma_30
         from bronze_gold.mart_stocks__moving_averages
         order by ticker, trading_date
-    """, conn)
+    """)
 
 
 @st.cache_data(ttl=3600)
 def load_volatility() -> pd.DataFrame:
-    conn = get_connection()
-    return pd.read_sql("""
+    return _query("""
         select ticker, trading_date,
                annualized_volatility_30d,
                annualized_volatility_7d,
                golden_cross_signal
         from bronze_gold.mart_stocks__volatility
         order by ticker, trading_date
-    """, conn)
+    """)
 
 
 # ── Load data ─────────────────────────────────────────────────────────────────
@@ -120,9 +126,9 @@ st.dataframe(
             "vs 30d Avg (%)": "{:+.1f}%",
             "30d Vol (ann.%)": "{:.1f}%",
         })
-        .applymap(lambda v: "color: #2ecc71" if isinstance(v, float) and v > 0 else
-                            "color: #e74c3c" if isinstance(v, float) and v < 0 else "",
-                  subset=["Day Return (%)", "vs 30d Avg (%)"]),
+        .map(lambda v: "color: #2ecc71" if isinstance(v, float) and v > 0 else
+                       "color: #e74c3c" if isinstance(v, float) and v < 0 else "",
+             subset=["Day Return (%)", "vs 30d Avg (%)"]),
     use_container_width=True,
     hide_index=True,
 )
