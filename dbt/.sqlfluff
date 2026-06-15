@@ -1,9 +1,17 @@
 [sqlfluff]
 templater = jinja
 dialect = redshift
+# Rules disabled:
+# LT01 - we align `as` keywords vertically (intentional style)
+# LT05 - 80-char line limit is too short for SQL with window functions
+# RF06 - "date", "open", "close" MUST be quoted in Redshift (reserved words)
+# RF02 - false positives inside {% if is_incremental() %} jinja blocks
+# ST01 - `else null` in CASE WHEN is explicit, not redundant
+# ST06 - column order in SELECT is intentional
+# AL01 - table aliasing style preference
+exclude_rules = LT01,LT02,LT05,RF06,RF02,ST01,ST06,AL01
 
 [sqlfluff:templater:jinja]
-# Stub out dbt macros so SQLFluff can lint without a live dbt connection
 apply_dbt_builtins = True
 
 [sqlfluff:rules:capitalisation.keywords]
