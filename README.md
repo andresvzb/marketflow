@@ -83,7 +83,7 @@ uv run streamlit run dashboard/app.py
 # → http://localhost:8501
 ```
 
-> **Screenshot:** *(add one after running locally)*
+![MarketFlow Dashboard](dashboard/screenshot.png)
 
 ---
 
