@@ -1,0 +1,26 @@
+name: marketflow
+version: "1.0.0"
+config-version: 2
+
+profile: marketflow
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  marketflow:
+    staging:
+      +schema: silver
+      +materialized: view
+    intermediate:
+      +schema: silver
+      +materialized: ephemeral
+    marts:
+      +schema: gold
+      +materialized: table
