@@ -20,6 +20,7 @@ wheels/
 dbt/.dbt/
 dbt/logs/
 dbt/target/
+dbt/dbt_packages/
 
 # Airflow
 airflow/logs/
