@@ -2,21 +2,39 @@ version: 2
 
 models:
   - name: stg_stocks__ohlcv
-    description: "Cleaned and typed daily stock OHLCV data from the bronze raw_ohlcv source. Standardizes the ticker symbol, casts the trading date and numeric price/volume fields to their proper types, and serves as the silver-layer foundation for downstream gold marts."
+    description: "Cleaned and typed daily OHLCV data from bronze. Silver layer foundation for all gold marts."
     columns:
       - name: ticker
         description: "Stock ticker symbol, upper-cased and trimmed."
+        tests:
+          - not_null
       - name: trading_date
-        description: "Trading session date (cast to DATE)."
+        description: "Trading session date."
+        tests:
+          - not_null
       - name: open_price
-        description: "Opening price for the session, decimal(18,4)."
+        description: "Opening price for the session."
+        tests:
+          - not_null
       - name: high_price
-        description: "Highest price during the session, decimal(18,4)."
+        description: "Highest price during the session."
+        tests:
+          - not_null
       - name: low_price
-        description: "Lowest price during the session, decimal(18,4)."
+        description: "Lowest price during the session."
+        tests:
+          - not_null
       - name: close_price
-        description: "Closing price for the session, decimal(18,4)."
+        description: "Closing price for the session."
+        tests:
+          - not_null
       - name: adjusted_close_price
-        description: "Split/dividend-adjusted closing price, decimal(18,4)."
+        description: "Split/dividend-adjusted closing price."
       - name: volume
-        description: "Number of shares traded during the session, bigint."
+        description: "Number of shares traded."
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['ticker', 'trading_date']

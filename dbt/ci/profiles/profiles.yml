@@ -1,0 +1,13 @@
+marketflow:
+  target: ci
+  outputs:
+    ci:
+      type: redshift
+      host: "{{ env_var('REDSHIFT_HOST', 'localhost') }}"
+      port: 5439
+      user: "{{ env_var('REDSHIFT_USER', 'ci') }}"
+      password: "{{ env_var('REDSHIFT_PASSWORD', 'ci') }}"
+      dbname: dev
+      schema: bronze
+      threads: 1
+      connect_timeout: 5

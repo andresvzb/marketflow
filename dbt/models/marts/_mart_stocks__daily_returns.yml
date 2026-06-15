@@ -2,19 +2,79 @@ version: 2
 
 models:
   - name: mart_stocks__daily_returns
-    description: "Gold-layer mart computing per-symbol daily returns from cleaned OHLCV data. Calculates absolute price change, simple daily return percentage, and log return using the prior trading day's close (via LAG window function partitioned by symbol)."
+    description: "Gold mart: per-ticker daily price change, simple return %, and log return using LAG window function."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['ticker', 'trading_date']
     columns:
-      - name: symbol
-        description: "Ticker symbol."
-      - name: trade_date
-        description: "Trading date for the observation."
-      - name: close
-        description: "Closing price for the trade date."
+      - name: ticker
+        description: "Stock ticker symbol."
+        tests:
+          - not_null
+      - name: trading_date
+        description: "Trading date."
+        tests:
+          - not_null
+      - name: close_price
+        description: "Closing price."
+        tests:
+          - not_null
       - name: prev_close
-        description: "Closing price of the prior trading day for this symbol (NULL for the first row)."
+        description: "Prior trading day's closing price. NULL for the first row per ticker."
       - name: price_change
-        description: "Absolute change in close price vs. the prior trading day (close - prev_close)."
+        description: "close_price - prev_close."
       - name: daily_return_pct
-        description: "Simple daily return: (close - prev_close) / prev_close. NULL when prev_close is missing or zero."
+        description: "Simple daily return: (close - prev_close) / prev_close."
       - name: daily_log_return
-        description: "Natural-log daily return: ln(close / prev_close)."
+        description: "Natural-log return: ln(close / prev_close)."
+
+  - name: mart_stocks__moving_averages
+    description: "Gold mart: 7-day and 30-day simple moving averages of close price, plus ratio of current price to each MA."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['ticker', 'trading_date']
+    columns:
+      - name: ticker
+        description: "Stock ticker symbol."
+        tests:
+          - not_null
+      - name: trading_date
+        description: "Trading date."
+        tests:
+          - not_null
+      - name: close_price
+        description: "Closing price."
+        tests:
+          - not_null
+      - name: sma_7
+        description: "7-day simple moving average of close price."
+      - name: sma_30
+        description: "30-day simple moving average of close price."
+      - name: price_to_sma_7
+        description: "close_price / sma_7. Values above 1 mean price is above its 7d average."
+      - name: price_to_sma_30
+        description: "close_price / sma_30. Values above 1 mean price is above its 30d average."
+
+  - name: mart_stocks__volatility
+    description: "Gold mart: annualized rolling volatility (stddev of log returns × √252), plus golden cross signal."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['ticker', 'trading_date']
+    columns:
+      - name: ticker
+        description: "Stock ticker symbol."
+        tests:
+          - not_null
+      - name: trading_date
+        description: "Trading date."
+        tests:
+          - not_null
+      - name: annualized_volatility_30d
+        description: "Rolling 30-day stddev of log returns, annualized by multiplying by √252."
+      - name: annualized_volatility_7d
+        description: "Rolling 7-day stddev of log returns, annualized."
+      - name: golden_cross_signal
+        description: "1 when sma_7 > sma_30 (bullish signal), 0 otherwise."

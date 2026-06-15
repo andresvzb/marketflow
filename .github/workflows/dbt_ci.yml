@@ -1,0 +1,69 @@
+name: dbt CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dbt/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'dbt/**'
+
+jobs:
+  dbt-compile:
+    name: Compile & lint dbt models
+    runs-on: ubuntu-latest
+
+    env:
+      # CI uses dummy values — compile checks SQL structure, not live connections
+      REDSHIFT_HOST: localhost
+      REDSHIFT_USER: ci
+      REDSHIFT_PASSWORD: ci
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Install dbt packages
+        working-directory: dbt
+        run: uv run dbt deps
+
+      - name: dbt compile (validates all SQL without running against a DB)
+        working-directory: dbt
+        run: uv run dbt compile --profiles-dir ci/profiles
+
+      - name: dbt source freshness check (compile only)
+        working-directory: dbt
+        run: uv run dbt parse
+
+  sqlfluff-lint:
+    name: Lint SQL with SQLFluff
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install SQLFluff
+        run: pip install sqlfluff sqlfluff-templater-dbt dbt-redshift
+
+      - name: Lint dbt models
+        working-directory: dbt
+        run: sqlfluff lint models/ --dialect redshift --templater dbt
