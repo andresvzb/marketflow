@@ -6,7 +6,7 @@
 ![Airflow](https://img.shields.io/badge/Apache-Airflow-017CEE?logo=apacheairflow)
 ![Claude](https://img.shields.io/badge/Claude-Opus%204.8-8A2BE2)
 
-> An AI agent that provisions AWS infrastructure, scaffolds dbt models, and generates Airflow DAGs on demand — all from a single natural-language command.
+> An AI agent that provisions AWS infrastructure, scaffolds dbt models, and generates Airflow DAGs on demand. All from a single natural-language command.
 
 ---
 
