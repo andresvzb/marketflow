@@ -154,24 +154,34 @@ st.dataframe(
 
 st.header("Cumulative Returns")
 
-cum_df = returns_df.copy()
-cum_df["daily_return_pct"] = cum_df["daily_return_pct"].fillna(0)
-cum_df = cum_df.sort_values(["ticker", "trading_date"])
-cum_df["cumulative_return"] = cum_df.groupby("ticker")["daily_return_pct"].transform(
-    lambda x: (1 + x).cumprod() - 1
-) * 100
-
-fig_cum = px.line(
-    cum_df,
-    x="trading_date",
-    y="cumulative_return",
-    color="ticker",
-    labels={"trading_date": "", "cumulative_return": "Cumulative Return (%)", "ticker": ""},
-    template="plotly_dark",
+default_tickers = ["AAPL", "MSFT", "NVDA", "GOOGL", "META"]
+selected_tickers = st.multiselect(
+    "Select tickers",
+    options=tickers,
+    default=[t for t in default_tickers if t in tickers],
 )
-fig_cum.add_hline(y=0, line_dash="dot", line_color="gray")
-fig_cum.update_layout(legend=dict(orientation="h", y=1.05))
-st.plotly_chart(fig_cum, use_container_width=True)
+
+if selected_tickers:
+    cum_df = returns_df[returns_df["ticker"].isin(selected_tickers)].copy()
+    cum_df["daily_return_pct"] = cum_df["daily_return_pct"].fillna(0)
+    cum_df = cum_df.sort_values(["ticker", "trading_date"])
+    cum_df["cumulative_return"] = cum_df.groupby("ticker")["daily_return_pct"].transform(
+        lambda x: (1 + x).cumprod() - 1
+    ) * 100
+
+    fig_cum = px.line(
+        cum_df,
+        x="trading_date",
+        y="cumulative_return",
+        color="ticker",
+        labels={"trading_date": "", "cumulative_return": "Cumulative Return (%)", "ticker": ""},
+        template="plotly_dark",
+    )
+    fig_cum.add_hline(y=0, line_dash="dot", line_color="gray")
+    fig_cum.update_layout(legend=dict(orientation="h", y=1.05))
+    st.plotly_chart(fig_cum, use_container_width=True)
+else:
+    st.info("Select at least one ticker above.")
 
 # ── Section 3: Price vs Moving Averages ───────────────────────────────────────
 
