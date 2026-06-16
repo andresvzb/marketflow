@@ -15,7 +15,10 @@ with daily_returns as (
 ),
 
 sectors as (
-    select ticker, sector, industry
+    select
+        ticker,
+        sector,
+        industry
     from {{ ref('ticker_sectors') }}
 ),
 
