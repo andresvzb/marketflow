@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: mart_stocks__sector_performance
+    description: >
+      Daily sector-level aggregation of returns across all tickers. Joins daily_returns
+      with the ticker_sectors seed to group stocks by GICS sector. One row per sector per day.
+    columns:
+      - name: sector
+        description: GICS sector name
+        tests:
+          - not_null
+      - name: trading_date
+        description: Trading session date
+        tests:
+          - not_null
+      - name: ticker_count
+        description: Number of tickers in this sector with data for this date
+      - name: avg_daily_return_pct
+        description: Simple average of daily_return_pct across all tickers in the sector
+      - name: advancing_count
+        description: Number of tickers with a positive return on this date
+      - name: declining_count
+        description: Number of tickers with a negative return on this date
+      - name: best_return_pct
+        description: Highest individual ticker return in the sector on this date
+      - name: worst_return_pct
+        description: Lowest individual ticker return in the sector on this date
+      - name: return_dispersion
+        description: Standard deviation of returns within the sector — measures how spread out performance was
+      - name: breadth_pct
+        description: Percentage of tickers advancing — 100% means all stocks in sector were up
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - sector
+              - trading_date

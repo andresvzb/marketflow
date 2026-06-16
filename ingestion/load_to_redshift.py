@@ -6,6 +6,7 @@ then loads data directly from the yfinance extractor.
 """
 
 import os
+import time
 from datetime import date, timedelta
 
 import redshift_connector
@@ -15,15 +16,30 @@ from ingestion.yfinance_extractor import fetch_ohlcv
 
 load_dotenv()
 
+_CONNECT_PARAMS = {
+    "port": 5439,
+    "database": "dev",
+    "ssl": True,
+    "sslmode": "require",
+}
+
 
 def get_connection():
-    return redshift_connector.connect(
-        host=os.environ["REDSHIFT_HOST"],
-        port=5439,
-        database="dev",
-        user=os.environ["REDSHIFT_USER"],
-        password=os.environ["REDSHIFT_PASSWORD"],
-    )
+    params = {
+        **_CONNECT_PARAMS,
+        "host": os.environ["REDSHIFT_HOST"],
+        "user": os.environ["REDSHIFT_USER"],
+        "password": os.environ["REDSHIFT_PASSWORD"],
+    }
+    # Redshift Serverless can take a moment to resume from pause — retry up to 3 times
+    for attempt in range(3):
+        try:
+            return redshift_connector.connect(**params)
+        except redshift_connector.error.InterfaceError:
+            if attempt == 2:
+                raise
+            print(f"  Redshift not ready (attempt {attempt + 1}/3), retrying in 10s...")
+            time.sleep(10)
 
 
 def setup_bronze_schema(cursor):
@@ -69,12 +85,12 @@ def load_ohlcv(cursor, tickers: list[str], start: date, end: date):
         for row in df.itertuples()
     ]
 
-    cursor.executemany(
-        """INSERT INTO bronze.raw_ohlcv
-           (ticker, "date", "open", high, low, "close", adjusted_close, volume)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-        rows,
-    )
+    sql = """INSERT INTO bronze.raw_ohlcv
+             (ticker, "date", "open", high, low, "close", adjusted_close, volume)
+             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+    batch_size = 500
+    for i in range(0, len(rows), batch_size):
+        cursor.executemany(sql, rows[i : i + batch_size])
     print(f"  Inserted {len(rows):,} rows into bronze.raw_ohlcv.")
 
 
@@ -82,7 +98,24 @@ def run(
     tickers: list[str] | None = None,
     days: int = 365,
 ):
-    tickers = tickers or ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "JPM", "BAC", "GS"]
+    tickers = tickers or [
+        # Technology
+        "AAPL", "MSFT", "NVDA", "GOOGL", "META", "AMD", "ORCL", "CRM", "ADBE", "INTC",
+        # Financials
+        "JPM", "BAC", "GS", "MS", "WFC", "V", "MA", "BLK",
+        # Healthcare
+        "JNJ", "UNH", "PFE", "ABBV", "LLY", "MRK", "ABT",
+        # Energy
+        "XOM", "CVX", "COP", "SLB", "EOG",
+        # Consumer Discretionary
+        "HD", "MCD", "SBUX", "NKE", "AMZN",
+        # Consumer Staples
+        "WMT", "KO", "PEP", "PG", "COST",
+        # Industrials
+        "CAT", "HON", "BA", "GE", "UPS",
+        # Utilities & Real Estate
+        "NEE", "DUK", "AMT", "PLD", "SPG",
+    ]
     end = date.today()
     start = end - timedelta(days=days)
 

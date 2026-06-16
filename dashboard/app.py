@@ -30,6 +30,8 @@ def get_connection():
         database="dev",
         user=os.environ["REDSHIFT_USER"],
         password=os.environ["REDSHIFT_PASSWORD"],
+        ssl=True,
+        sslmode="require",
     )
 
 
@@ -73,12 +75,27 @@ def load_volatility() -> pd.DataFrame:
     """)
 
 
+@st.cache_data(ttl=3600)
+def load_sector_performance() -> pd.DataFrame:
+    return _query("""
+        select sector, trading_date,
+               avg_daily_return_pct,
+               breadth_pct,
+               ticker_count,
+               best_return_pct,
+               worst_return_pct
+        from bronze_gold.mart_stocks__sector_performance
+        order by sector, trading_date
+    """)
+
+
 # ── Load data ─────────────────────────────────────────────────────────────────
 
 with st.spinner("Loading data from Redshift..."):
     returns_df = load_returns()
     ma_df = load_moving_averages()
     vol_df = load_volatility()
+    sector_df = load_sector_performance()
 
 latest_date = returns_df["trading_date"].max()
 tickers = sorted(returns_df["ticker"].unique())
@@ -201,5 +218,55 @@ fig_vol = px.bar(
 )
 fig_vol.update_coloraxes(showscale=False)
 st.plotly_chart(fig_vol, use_container_width=True)
+
+# ── Section 5: Sector Performance ────────────────────────────────────────────
+
+st.header("Sector Performance")
+
+col_a, col_b = st.columns(2)
+
+with col_a:
+    st.subheader("Cumulative Return by Sector")
+    sector_cum = sector_df.copy()
+    sector_cum["avg_daily_return_pct"] = sector_cum["avg_daily_return_pct"].fillna(0)
+    sector_cum = sector_cum.sort_values(["sector", "trading_date"])
+    sector_cum["cumulative_return"] = sector_cum.groupby("sector")["avg_daily_return_pct"].transform(
+        lambda x: (1 + x).cumprod() - 1
+    ) * 100
+
+    fig_sector_cum = px.line(
+        sector_cum,
+        x="trading_date",
+        y="cumulative_return",
+        color="sector",
+        labels={"trading_date": "", "cumulative_return": "Cumulative Return (%)", "sector": ""},
+        template="plotly_dark",
+    )
+    fig_sector_cum.add_hline(y=0, line_dash="dot", line_color="gray")
+    fig_sector_cum.update_layout(legend=dict(orientation="h", y=1.1, font=dict(size=10)))
+    st.plotly_chart(fig_sector_cum, use_container_width=True)
+
+with col_b:
+    st.subheader("Today's Sector Breadth")
+    latest_sector = sector_df[sector_df["trading_date"] == sector_df["trading_date"].max()].copy()
+    latest_sector["return_pct"] = latest_sector["avg_daily_return_pct"] * 100
+    latest_sector = latest_sector.sort_values("return_pct", ascending=True)
+
+    fig_sector_bar = px.bar(
+        latest_sector,
+        x="return_pct",
+        y="sector",
+        orientation="h",
+        color="return_pct",
+        color_continuous_scale="RdYlGn",
+        labels={"return_pct": "Avg Return (%)", "sector": ""},
+        template="plotly_dark",
+        custom_data=["breadth_pct", "ticker_count"],
+    )
+    fig_sector_bar.update_traces(
+        hovertemplate="<b>%{y}</b><br>Avg return: %{x:.2f}%<br>Breadth: %{customdata[0]:.0f}% advancing<br>Tickers: %{customdata[1]}<extra></extra>"
+    )
+    fig_sector_bar.update_coloraxes(showscale=False)
+    st.plotly_chart(fig_sector_bar, use_container_width=True)
 
 st.caption("Pipeline: yfinance → S3 → Redshift (bronze) → dbt staging (silver) → dbt marts (gold)")

@@ -1,0 +1,51 @@
+ticker,company_name,sector,industry
+AAPL,Apple Inc,Technology,Consumer Electronics
+MSFT,Microsoft Corporation,Technology,Software
+NVDA,NVIDIA Corporation,Technology,Semiconductors
+GOOGL,Alphabet Inc,Technology,Internet Services
+META,Meta Platforms,Technology,Social Media
+AMD,Advanced Micro Devices,Technology,Semiconductors
+ORCL,Oracle Corporation,Technology,Enterprise Software
+CRM,Salesforce Inc,Technology,Enterprise Software
+ADBE,Adobe Inc,Technology,Software
+INTC,Intel Corporation,Technology,Semiconductors
+JPM,JPMorgan Chase,Financials,Banks
+BAC,Bank of America,Financials,Banks
+GS,Goldman Sachs,Financials,Capital Markets
+MS,Morgan Stanley,Financials,Capital Markets
+WFC,Wells Fargo,Financials,Banks
+V,Visa Inc,Financials,Payment Processing
+MA,Mastercard Inc,Financials,Payment Processing
+BLK,BlackRock Inc,Financials,Asset Management
+JNJ,Johnson & Johnson,Healthcare,Pharmaceuticals
+UNH,UnitedHealth Group,Healthcare,Managed Care
+PFE,Pfizer Inc,Healthcare,Pharmaceuticals
+ABBV,AbbVie Inc,Healthcare,Pharmaceuticals
+LLY,Eli Lilly,Healthcare,Pharmaceuticals
+MRK,Merck & Co,Healthcare,Pharmaceuticals
+ABT,Abbott Laboratories,Healthcare,Medical Devices
+XOM,ExxonMobil Corporation,Energy,Oil & Gas
+CVX,Chevron Corporation,Energy,Oil & Gas
+COP,ConocoPhillips,Energy,Oil & Gas
+SLB,SLB (Schlumberger),Energy,Oilfield Services
+EOG,EOG Resources,Energy,Oil & Gas
+HD,Home Depot,Consumer Discretionary,Home Improvement
+MCD,McDonald's Corporation,Consumer Discretionary,Restaurants
+SBUX,Starbucks Corporation,Consumer Discretionary,Restaurants
+NKE,Nike Inc,Consumer Discretionary,Apparel
+AMZN,Amazon.com Inc,Consumer Discretionary,E-Commerce
+WMT,Walmart Inc,Consumer Staples,Discount Stores
+KO,Coca-Cola Company,Consumer Staples,Beverages
+PEP,PepsiCo Inc,Consumer Staples,Beverages
+PG,Procter & Gamble,Consumer Staples,Household Products
+COST,Costco Wholesale,Consumer Staples,Discount Stores
+CAT,Caterpillar Inc,Industrials,Construction Equipment
+HON,Honeywell International,Industrials,Conglomerates
+BA,Boeing Company,Industrials,Aerospace & Defense
+GE,GE Aerospace,Industrials,Aerospace & Defense
+UPS,United Parcel Service,Industrials,Logistics
+NEE,NextEra Energy,Utilities,Electric Utilities
+DUK,Duke Energy,Utilities,Electric Utilities
+AMT,American Tower,Real Estate,Cell Tower REITs
+PLD,Prologis Inc,Real Estate,Industrial REITs
+SPG,Simon Property Group,Real Estate,Retail REITs

@@ -13,6 +13,10 @@ macro-paths: ["macros"]
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]
 
+seeds:
+  marketflow:
+    +schema: reference
+
 models:
   marketflow:
     staging:
